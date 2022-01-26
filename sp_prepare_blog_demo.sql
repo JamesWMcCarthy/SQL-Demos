@@ -3,6 +3,7 @@
 -- This demo uses the Stack Overflow 2010 sample database
 -- https://downloads.brentozar.com/StackOverflow2010.7z
 -- We create a non-clustered index on the Posts table for this demo
+-- Run via SSMS using the "Include Actual Execution Plan" for easy visualation of the query plans
 --------------------------------------------------------------
 USE [StackOverflow2010];
 GO
@@ -17,10 +18,11 @@ GO
 -- Intro
 --------------------------------------------------------------
 DBCC FREEPROCCACHE
--- High number of rows, scans the clustered index, uses parallelism
 SELECT AnswerCount FROM Posts WHERE CommentCount = 0;
--- Low number of rows, seeks the non-clustered index, key lookup with a nested loop
+-- High number of rows, scans the clustered index, uses parallelism
+
 SELECT AnswerCount FROM Posts WHERE CommentCount = 27;
+-- Low number of rows, seeks the non-clustered index, key lookup with a nested loop
 
 --------------------------------------------------------------
 -- Parameterize the query
@@ -110,6 +112,7 @@ EXEC sp_prepare @p5 OUTPUT, N'@i INT', @sql;
 EXEC sp_execute @p5, 27;
 EXEC sp_unprepare @p5;
 -- These now all use the same best case plan each time
+
 ALTER INDEX [IX_Posts_CommentCount_INCL_AnswerCount] ON [dbo].[Posts] DISABLE
 GO
 -- Disable the index so it cannot be used 
